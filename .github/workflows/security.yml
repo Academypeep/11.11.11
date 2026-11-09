@@ -1,0 +1,56 @@
+name: Security Audit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  security-audit:
+    name: Secrets & Vulnerability Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Scan for Hardcoded Secrets
+        run: |
+          echo "Scanning repository for common secret patterns..."
+          python3 -c "
+          import re, os, sys
+
+          PATTERNS = [
+              r'(?i)(api[_-]?key|secret[_-]?key|private[_-]?key)\s*[:=]\s*[\'\"][0-9a-zA-Z\-_]{16,}[\'\"]',
+              r'ghp_[0-9a-zA-Z]{36}',
+              r'github_pat_[0-9a-zA-Z_]{82}',
+              r'xox[baprs]-[0-9a-zA-Z]{10,48}',
+              r'-----BEGIN [A-Z ]*PRIVATE KEY-----',
+          ]
+
+          violations = []
+          for root, dirs, files in os.walk('.'):
+              if '.git' in dirs:
+                  dirs.remove('.git')
+              for file in files:
+                  filepath = os.path.join(root, file)
+                  try:
+                      with open(filepath, 'r', errors='ignore') as f:
+                          for idx, line in enumerate(f, 1):
+                              for pattern in PATTERNS:
+                                  if re.search(pattern, line):
+                                      violations.append(f'{filepath}:{idx}: Matches pattern {pattern}')
+                  except Exception as e:
+                      pass
+
+          if violations:
+              print('Potential secrets detected:')
+              for v in violations:
+                  print(f'  - {v}')
+              sys.exit(1)
+          else:
+              print('No exposed secrets or credentials found.')
+          "

@@ -17,11 +17,20 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install Validation Tools
+        run: |
+          pip install --upgrade pyyaml
+
       - name: Validate YAML Files
         run: |
           python3 -c "
           import yaml, glob
-          files = glob.glob('.github/**/*.yml', recursive=True) + glob.glob('.github/**/*.yaml', recursive=True)
+          files = sorted(glob.glob('.github/**/*.yml', recursive=True) + glob.glob('.github/**/*.yaml', recursive=True))
           for f in files:
               with open(f, 'r') as stream:
                   yaml.safe_load(stream)

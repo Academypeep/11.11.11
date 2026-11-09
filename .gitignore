@@ -17,7 +17,7 @@ Thumbs.db
 *.sublime-project
 *.sublime-workspace
 
-# Environment Variables & Secrets
+# Environment Variables, Secrets & Credentials
 .env
 .env.*
 !.env.example
@@ -25,6 +25,18 @@ Thumbs.db
 *.key
 *.cert
 *.crt
+*.pfx
+*.p12
+*.jks
+credentials.json
+service-account*.json
+token.json
+oauth-credentials.json
+auth_token*
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
 
 # Build Artifacts & Dependencies
 node_modules/
