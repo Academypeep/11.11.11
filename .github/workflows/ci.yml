@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-validate:
+    name: Lint & Validate Repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Validate YAML Files
+        run: |
+          python3 -c "
+          import yaml, glob
+          files = glob.glob('.github/**/*.yml', recursive=True) + glob.glob('.github/**/*.yaml', recursive=True)
+          for f in files:
+              with open(f, 'r') as stream:
+                  yaml.safe_load(stream)
+                  print(f'Valid YAML: {f}')
+          "
+
+      - name: Check Repository Hygiene
+        run: |
+          echo "Verifying presence of core community and hygiene files..."
+          test -f README.md || (echo "Missing README.md" && exit 1)
+          test -f LICENSE || (echo "Missing LICENSE" && exit 1)
+          test -f .gitignore || (echo "Missing .gitignore" && exit 1)
+          test -f .github/SECURITY.md || (echo "Missing SECURITY.md" && exit 1)
+          test -f .github/CONTRIBUTING.md || (echo "Missing CONTRIBUTING.md" && exit 1)
+          test -f .github/CODE_OF_CONDUCT.md || (echo "Missing CODE_OF_CONDUCT.md" && exit 1)
+          test -f .github/FUNDING.yml || (echo "Missing FUNDING.yml" && exit 1)
+          echo "All core repository hygiene checks passed successfully."
